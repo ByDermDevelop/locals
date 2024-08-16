@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa de Tiendas</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 30%;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+
+    .sidebar button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    #map {
+      width: 70%;
+      height: 100vh;
+    }
+
+    .tienda {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #fff;
+      cursor: pointer;
+      border: 1px solid #ccc;
+    }
+
+    .tienda:hover {
+      background-color: #e0e0e0;
+    }
+
+    #tiendasCercanas {
+      margin-top: 20px;
+      overflow-y: scroll;
+      max-height: 450px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <button onclick="verMiUbicacion()">Ver Mi Ubicación</button>
+    <button onclick="verTodasLasTiendas()">Ver Todas las Tiendas</button>
+    <div id="tiendasCercanas"></div>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const tiendas = [
+      {
+        nombre: 'FCIA EL BOTICARIO',
+        direccion: 'CLAUDIO RODRIGO 154, EL DORADO',
+        tel: '03751 42-6811',
+        lat: '-26.40702',
+        lng: '-54.605254'
+      },
+      {
+        nombre: 'FCIA FARMAMUNDO',
+        direccion: 'CONSTITUCION 347, SAN VICENTE',
+        tel: '3755461379',
+        lat: '-31.702393',
+        lng: '-61.569195'
+      },
+      {
+        nombre: 'FCIA IRUPE',
+        direccion: 'AV DEL LIBERTADOR 801, SAN VICENTE',
+        tel: '3755-460641',
+        lat: '-26.996077',
+        lng: '-54.485189'
+      },
+      {
+        nombre: 'FCIA SAN RAFAEL',
+        direccion: 'AV LIBERTADOR 707, SAN VICENTE',
+        tel: '3755-46-0683',
+        lat: '-26.996299',
+        lng: '-54.486262'
+      },
+      {
+        nombre: 'FCIA GABRIEL BIS',
+        direccion: 'AVENIDA LIBERTAD 799, OBERA',
+        tel: '03755 40-7770',
+        lat: '-27.488733',
+        lng: '-55.110445'
+      },
+      {
+        nombre: 'FCIA SALUD',
+        direccion: 'SARMIENTO 455, OBERA',
+        tel: '0375-540-8940',
+        lat: '-27.483759',
+        lng: '-55.116311'
+      },
+      {
+        nombre: 'FCIA PASTORI',
+        direccion: 'AV. LIBERTAD 559, OBERA',
+        tel: '03755 40-8800',
+        lat: '-27.487207',
+        lng: '-55.113338'
+      },
+      {
+        nombre: 'FCIA LUNA',
+        direccion: 'RALFSINGER 142, OBERA',
+        tel: '03755-426-680',
+        lat: '-27.486189',
+        lng: '-55.118547'
+      },
+      {
+        nombre: 'FCIA MODERNA',
+        direccion: 'CORDOBA 24, OBERA',
+        tel: '03755-42-1108',
+        lat: '-27.48629',
+        lng: '-55.122452'
+      },
+      {
+        nombre: 'FCIA CIRELLI',
+        direccion: '25 DE MAYO 1654, SANTO TOMÉ',
+        tel: '3424740427',
+        lat: '-31.661982',
+        lng: '-60.762238'
+      },
+      {
+        nombre: 'FCIA AV SALVADOR MAZZA',
+        direccion: 'AV S MARTIN E INDEP 2, SALVADOR MAZZA',
+        tel: '3873471999',
+        lat: '-22.050084',
+        lng: '-63.685061'
+      },
+      {
+        nombre: 'FCIA AVENIDA AGUARAY',
+        direccion: 'AV M MORENO Y V BRITO 402, AGUARAY',
+        tel: '3873460777',
+        lat: '-22.239807',
+        lng: '-63.737344'
+      },
+      {
+        nombre: 'FCIA AV TARTAGAL',
+        direccion: 'ALBERDI 798, TARTAGAL',
+        tel: '3873513558',
+        lat: '-22.516758',
+        lng: '-63.798712'
+      },
+      {
+        nombre: 'FCIA SAN NICOLAS',
+        direccion: 'WARNES 281, TARTAGAL',
+        tel: '3873423677',
+        lat: '-22.518534',
+        lng: '-63.803173'
+      },
+      {
+        nombre: 'FCIA LA TRADICION',
+        direccion: 'LA RIOJA 798, CORRIENTES',
+        tel: '379-4460708',
+        lat: '-27.466285',
+        lng: '-58.838078'
+      },
+      {
+        nombre: 'FCIA SAN LUIS',
+        direccion: 'JUNIN 602, CORRIENTES',
+        tel: '379-442-5080',
+        lat: '-27.467217',
+        lng: '-58.842852'
+      },
+      {
+        nombre: 'FCIA LA TERMINAL',
+        direccion: 'AV MAIPU 2460, CORRIENTES',
+        tel: '3783-344-6875',
+        lat: '-27.497404',
+        lng: '-58.816053'
+      },
+      {
+        nombre: 'FCIA ANASTASI',
+        direccion: 'MARIANO MORENO 505, CORRIENTES',
+        tel: '37-4466508',
+        lat: '-27.47249',
+        lng: '-58.844505'
+      },
+      {
+        nombre: 'RED GRAL PAZ',
+        direccion: 'SANTA FE 124, RESISTENCIA',
+        tel: '362-445-1962',
+        lat: '-27.448421',
+        lng: '-58.98576'
+      },
+      {
+        nombre: 'FCIA BOTIQUÍN',
+        direccion: 'RUTA 118 Km. 63, SANTA ROSA',
+        tel: '03782-494-351',
+        lat: '-28.263242',
+        lng: '-58.116703'
+      },
+      {
+        nombre: 'FCIA MARKONICH',
+        direccion: 'TUCUMAN 556, QUITILPI',
+        tel: '364-448-0146',
+        lat: '-26.871909',
+        lng: '-60.217026'
+      },
+      {
+        nombre: 'FCIA EL PEREGRINO',
+        direccion: 'AV GRAK PIZARRO 145, ORAN',
+        tel: '3878427215',
+        lat: '-23.140334',
+        lng: '-64.324513'
+      },
+      {
+        nombre: 'FCIA ALVARADO',
+        direccion: 'ALVARADO Y PELLEGRINI, ORAN',
+        tel: '3878421654',
+        lat: '-23.134105',
+        lng: '-64.323237'
+      },
+      {
+        nombre: 'FCIA FATIMA PAOLA',
+        direccion: 'AV. SARMIENTO 369 AV1 E/8 Y 10, R. S. PEÑA',
+        tel: '3644184276',
+        lat: '-27.448102',
+        lng: '-58.983476'
+      },
+      {
+        nombre: 'FCIA POLINI',
+        direccion: 'ALBERDI 31, CNEL DU GRATY',
+        tel: '3735-498-488',
+        lat: '-27.685371',
+        lng: '-60.908607'
+      },
+      {
+        nombre: 'FCIA PINTO IV',
+        direccion: '25 DE MAYO 1038, LAS BREÑAS',
+        tel: '3731-430300',
+        lat: '-27.088458',
+        lng: '-61.085572'
+      },
+      {
+        nombre: 'FCIA PINTO III',
+        direccion: '25 DE MAYO 0555, CHARATA',
+        tel: '3731-421583',
+        lat: '-27.217063',
+        lng: '-61.190763'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'EDEN 604, LA FALDA',
+        tel: '',
+        lat: '-31.094403',
+        lng: '-64.48284'
+      },
+      {
+        nombre: 'ROSSO',
+        direccion: 'SAN JERONIMO 3105, CÓRDOBA',
+        tel: '',
+        lat: '-31.423537',
+        lng: '-64.144156'
+      },
+      {
+        nombre: 'GRAL PAZ',
+        direccion: 'SARMIENTO 436, LA FALDA',
+        tel: '',
+        lat: '-31.093993',
+        lng: '-64.481818'
+      },
+      {
+        nombre: 'MUNDIAL',
+        direccion: 'FRAY JOSÉ LEÓN TORRES ESQ. MARIANO FRAGUEIRO 2398, CÓRDOBA',
+        tel: '',
+        lat: '-31.387671',
+        lng: '-64.183606'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'LA FALDA',
+        tel: '-541098',
+        lat: '-31.094403',
+        lng: '-64.48284'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'AV. KENNEDY 166, LA FALDA',
+        tel: '',
+        lat: '-31.091421',
+        lng: '-64.486037'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'SARMIENTO 248, LA FALDA',
+        tel: '',
+        lat: '-31.094238',
+        lng: '-64.484192'
+      },
+      {
+        nombre: 'HOSPITAL ITALIANO',
+        direccion: 'AV. GRAL. DEHEZA 514, CÓRDOBA',
+        tel: '03548-42-2894',
+        lat: '-31.316397',
+        lng: '-64.469945'
+      },
+      {
+        nombre: 'FCIA SAN CARLOS',
+        direccion: 'M MORENO 601, GRAL PINEDO',
+        tel: '3731-480319',
+        lat: '-32.902136',
+        lng: '-68.860196'
+      },
+      {
+        nombre: 'FCIA DEL PUEBLO',
+        direccion: 'SARMIENTO 2646, CHAJARI',
+        tel: '03456-421050',
+        lat: '-30.757552',
+        lng: '-57.980022'
+      },
+      {
+        nombre: 'FCIA POLINI',
+        direccion: 'SAN MARTIN 298, SANTA SYLVINA',
+        tel: '3735-492399',
+        lat: '-27.831599',
+        lng: '-61.136033'
+      },
+      {
+        nombre: 'FCIA FEDERACION',
+        direccion: 'LAS MAGNOLIAS 1087, FEDERACION',
+        tel: '0345-648-1640',
+        lat: '-30.983017',
+        lng: '-57.92368'
+      },
+      {
+        nombre: 'FCIA SAN MARTIN',
+        direccion: 'AV SAN MARTIN 244, SAN SALVADOR',
+        tel: '388-424-1219',
+        lat: '-31.524989',
+        lng: '-58.404236'
+      },
+      {
+        nombre: 'FCIA SAN FRANCISCO',
+        direccion: 'BELGRANO Y LAVALLE, SAN SALVADOR',
+        tel: '388-423-7333',
+        lat: '-24.185338',
+        lng: '-65.302844'
+      },
+      {
+        nombre: 'FCIA CARRILLO',
+        direccion: 'GUEMES 1018, SAN SALVADOR',
+        tel: '388-422-2917',
+        lat: '-24.183178',
+        lng: '-65.30731'
+      },
+      {
+        nombre: 'FCIA SIUFI',
+        direccion: 'ALVEAR 1062, SAN SALVADOR',
+        tel: '388-423-1705',
+        lat: '-24.184426',
+        lng: '-65.30781'
+      },
+      {
+        nombre: 'SAN FRANCISCO 2',
+        direccion: 'LAVALLE ESQ. 19 DE ABRIL, SAN SALVADOR',
+        tel: '388-422-7221',
+        lat: '-24.188853',
+        lng: '-65.302638'
+      },
+      {
+        nombre: 'FCIA EL INCA',
+        direccion: 'ALVEAR 1198, SAN SALVADOR',
+        tel: '0388-4228436',
+        lat: '-24.18452',
+        lng: '-65.309619'
+      },
+      {
+        nombre: 'FCIA VITAL',
+        direccion: 'SARAVIA 17, GRAL GUEMES',
+        tel: '3874911294',
+        lat: '-24.673505',
+        lng: '-65.04508'
+      },
+      {
+        nombre: 'FARMAFULL',
+        direccion: 'SAN JUAN 1390, CONCORDIA',
+        tel: '4216080',
+        lat: '-31.384538',
+        lng: '-58.010847'
+      },
+      {
+        nombre: 'FCIA SALTO GRANDE',
+        direccion: 'C. PELLEGRINI 1101, CONCORDIA',
+        tel: '0345-421-3360',
+        lat: '-31.389032',
+        lng: '-58.014765'
+      },
+      {
+        nombre: 'FARMAFULL',
+        direccion: 'PELLEGRINI 889, CONCORDIA',
+        tel: '4222823',
+        lat: '-31.392881',
+        lng: '-58.015642'
+      },
+      {
+        nombre: 'FARMAFULL',
+        direccion: 'URDINARRAIN 31, CONCORDIA',
+        tel: '4227737',
+        lat: '-31.394685',
+        lng: '-58.018798'
+      },
+      {
+        nombre: 'FCIA VELEZ SÁRSFIELD',
+        direccion: 'V. SÁRSFIELD 248, CONCORDIA',
+        tel: '0345-421-3356',
+        lat: '-31.393423',
+        lng: '-58.022535'
+      },
+      {
+        nombre: 'FARMAFULL',
+        direccion: 'URQUIZA 536, CONCORDIA',
+        tel: '345-422-6761',
+        lat: '-31.398903',
+        lng: '-58.01832'
+      },
+      {
+        nombre: 'FCIA LEDESMA',
+        direccion: 'GDOR ANTELO 295, CONCORDIA',
+        tel: '0345-442-2767',
+        lat: '-31.391392',
+        lng: '-58.017434'
+      },
+      {
+        nombre: 'FARMAFULL',
+        direccion: 'PALEO 163, CONCORDIA',
+        tel: '0345-421-8726',
+        lat: '-31.391392',
+        lng: '-58.017434'
+      },
+      {
+        nombre: 'FCIA MAR DEL PLATA',
+        direccion: 'PEÑA 1140, CONCORDIA',
+        tel: '0345-427-8830',
+        lat: '-31.391392',
+        lng: '-58.017434'
+      },
+      {
+        nombre: 'FCIA MACRI',
+        direccion: '8 DE NOVIEMBRE 279, CONCORDIA',
+        tel: '0345-426-0176',
+        lat: '-31.391392',
+        lng: '-58.017434'
+      },
+      {
+        nombre: 'FCIA MARTÍNEZ',
+        direccion: 'SAN MARTÍN 1024, CONCORDIA',
+        tel: '0345-424-2934',
+        lat: '-31.393518',
+        lng: '-58.037104'
+      },
+      {
+        nombre: 'DANIOTTI',
+        direccion: 'PTE. PERÓN 265, VILLA TORTORAL',
+        tel: '3524-47-0998',
+        lat: '-30.703963',
+        lng: '-64.064136'
+      },
+      {
+        nombre: 'FCIA BOCASSI',
+        direccion: 'RAWSON 744, SAN A. DE GILES',
+        tel: '2325443233',
+        lat: '-43.299858',
+        lng: '-65.099487'
+      },
+      {
+        nombre: 'FCIA. VISCA MODERNA',
+        direccion: 'CARLOS PEREGRINI 249, CHIVILCOY',
+        tel: '02346 - 422514',
+        lat: '-34.892783',
+        lng: '-60.015997'
+      },
+      {
+        nombre: 'FCIA BUCCI',
+        direccion: 'CARLOS CASADO 1315, FIRMAT',
+        tel: '3465424393',
+        lat: '-33.45448',
+        lng: '-61.491001'
+      },
+      {
+        nombre: 'FCIA. SINDICAL',
+        direccion: 'CARLOS PEREGRINI 44, CHIVILCOY',
+        tel: '02346-42-0657',
+        lat: '-34.895606',
+        lng: '-60.01951'
+      },
+      {
+        nombre: 'DANIOTTI',
+        direccion: 'VICENTE AGUERO 336, JESÚS MARÍA',
+        tel: '3525-40-0200',
+        lat: '-30.979225',
+        lng: '-64.090391'
+      },
+      {
+        nombre: 'DANIOTTI',
+        direccion: 'TUCUMAN 532, JESÚS MARÍA',
+        tel: '3525-40-0606',
+        lat: '-30.979217',
+        lng: '-64.09676'
+      },
+      {
+        nombre: 'DANIOTTI',
+        direccion: 'ITALIA 399, JESÚS MARÍA',
+        tel: '3525-40-0603',
+        lat: '-30.978995',
+        lng: '-64.092557'
+      },
+      {
+        nombre: 'FCIA MUJICA',
+        direccion: 'ELGUEA ROMÁN 258, CHACABUCO',
+        tel: '2352-430497',
+        lat: '-34.633538',
+        lng: '-60.47184'
+      },
+      {
+        nombre: 'FCIA. BADÍA',
+        direccion: 'ALTE. BROWN 56, CHACABUCO',
+        tel: '02352-428-491',
+        lat: '-34.642307',
+        lng: '-60.472653'
+      },
+      {
+        nombre: 'MODERNA',
+        direccion: 'HIPÓLITO IRIGOYEN 495, BELL VILLE',
+        tel: '',
+        lat: '-32.632499',
+        lng: '-62.692337'
+      },
+      {
+        nombre: 'MODERNA',
+        direccion: 'SARMIENT 79 ESQ. TUCUMAN, BELL VILLE',
+        tel: '',
+        lat: '-42.91736',
+        lng: '-71.313761'
+      },
+      {
+        nombre: 'MODERNA',
+        direccion: 'PIO ANGULO 899 ESQ. SAN JUAN, BELL VILLE',
+        tel: '',
+        lat: '-32.63157',
+        lng: '-62.698757'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'BS. AS. 118, CAPILLA DEL MONTE',
+        tel: '',
+        lat: '-30.859811',
+        lng: '-64.523439'
+      },
+      {
+        nombre: 'HOSPITAL ITALIANO',
+        direccion: 'SARMIENTO 1037 DINOMALL, SALSIPUEDES',
+        tel: '',
+        lat: '-31.126545',
+        lng: '-64.295472'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: '25 DE mayo 0222, LA CUMBRE',
+        tel: '',
+        lat: '-30.982744',
+        lng: '-64.491402'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'BELGRANO 232, LA CUMBRE',
+        tel: '',
+        lat: '-30.982648',
+        lng: '-64.493503'
+      },
+      {
+        nombre: 'GRAL PAZ',
+        direccion: 'AV. SAN MARTIN 3145, RIO CEBALLOS',
+        tel: '',
+        lat: '-31.181674',
+        lng: '-64.314694'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'RIVADAVIA 490 LOC. A, CRUZ DEL EJE',
+        tel: '',
+        lat: '-34.639326',
+        lng: '-58.529414'
+      },
+      {
+        nombre: 'RED GRAL PAZ',
+        direccion: 'ALFONSINA STORNI 37, CÓRDOBA',
+        tel: '',
+        lat: '-31.353643',
+        lng: '-64.17539'
+      },
+      {
+        nombre: 'MODERNA',
+        direccion: 'JUAN OCA BALDA 772, CÓRDOBA',
+        tel: '',
+        lat: '-31.374391',
+        lng: '-64.163432'
+      },
+      {
+        nombre: 'RED GRAL PAZ',
+        direccion: 'AV. CIRCUNVALACIÓN COLECTORA NORTE SALIDA 1B, CÓRDOBA',
+        tel: '',
+        lat: '-31.469246',
+        lng: '-64.185257'
+      },
+      {
+        nombre: 'SANCHEZ ANTONIOLLI',
+        direccion: 'AVDA. LEANDRO ALEM 1570, CÓRDOBA',
+        tel: '',
+        lat: '-31.386705',
+        lng: '-64.160061'
+      },
+      {
+        nombre: 'SANCHEZ ANTONIOLLI',
+        direccion: 'ROSALES 5395, CÓRDOBA',
+        tel: '',
+        lat: '-31.430639',
+        lng: '-64.117002'
+      },
+      {
+        nombre: 'GRAL PAZ',
+        direccion: 'AV. SAN MARTIN 945, HUERTA GRANDE',
+        tel: '',
+        lat: '-31.074945',
+        lng: '-64.492381'
+      },
+      {
+        nombre: 'LIDER',
+        direccion: 'RUTA E-57 KM 12 - ALTOS DEL TALAR, MENDIOLAZA',
+        tel: '',
+        lat: '-31.268678',
+        lng: '-64.299502'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'EDEN 604, LA FALDA',
+        tel: '',
+        lat: '-31.094403',
+        lng: '-64.48284'
+      },
+      {
+        nombre: 'ROSSO',
+        direccion: 'SAN JERONIMO 3105, CÓRDOBA',
+        tel: '',
+        lat: '-31.423537',
+        lng: '-64.144156'
+      },
+      {
+        nombre: 'GRAL PAZ',
+        direccion: 'SARMIENTO 436, LA FALDA',
+        tel: '',
+        lat: '-31.093993',
+        lng: '-64.481818'
+      },
+      {
+        nombre: 'MUNDIAL',
+        direccion: 'FRAY JOSÉ LEÓN TORRES ESQ. MARIANO FRAGUEIRO 2398, CÓRDOBA',
+        tel: '',
+        lat: '-31.387671',
+        lng: '-64.183606'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'LA FALDA',
+        tel: '-541098',
+        lat: '-31.094403',
+        lng: '-64.48284'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'AV. KENNEDY 166, LA FALDA',
+        tel: '',
+        lat: '-31.091421',
+        lng: '-64.486037'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'SARMIENTO 248, LA FALDA',
+        tel: '',
+        lat: '-31.094238',
+        lng: '-64.484192'
+      },
+      {
+        nombre: 'HOSPITAL ITALIANO',
+        direccion: 'AV. GRAL. DEHEZA 514, CÓRDOBA',
+        tel: '03548-42-2894',
+        lat: '-31.316397',
+        lng: '-64.469945'
+      },
+      {
+        nombre: 'HOSPITAL ITALIANO',
+        direccion: 'ROMA 550, CÓRDOBA',
+        tel: '',
+        lat: '-31.409421',
+        lng: '-64.164021'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'EDEN 102, LA FALDA',
+        tel: '03548-42-2894',
+        lat: '-31.093385',
+        lng: '-64.485906'
+      },
+      {
+        nombre: 'HOSPITAL ITALIANO',
+        direccion: 'ONCATIVO 1501, CÓRDOBA',
+        tel: '',
+        lat: '-31.408769',
+        lng: '-64.16499'
+      },
+      {
+        nombre: 'RED GRAL PAZ',
+        direccion: 'ROMA 557, CÓRDOBA',
+        tel: '',
+        lat: '-31.414799',
+        lng: '-64.163135'
+      },
+      {
+        nombre: 'FARMASUT',
+        direccion: 'GRAL. DEHEZA 208 ESQ. 24 DE SEP., CÓRDOBA',
+        tel: '',
+        lat: '-31.412473',
+        lng: '-64.162324'
+      },
+      {
+        nombre: 'LÍDER',
+        direccion: 'ONCATIVO 1366, CÓRDOBA',
+        tel: '0810-888-1414',
+        lat: '-31.409528',
+        lng: '-64.1667'
+      },
+      {
+        nombre: 'MUNDIAL',
+        direccion: 'JOSÉ BAIGORRI 747, CÓRDOBA',
+        tel: '',
+        lat: '-31.392347',
+        lng: '-64.185004'
+      },
+      {
+        nombre: 'SANCHEZ ANTONIOLLI',
+        direccion: 'LEARTES 2484, CÓRDOBA',
+        tel: '',
+        lat: '-31.439',
+        lng: '-64.13926'
+      },
+      {
+        nombre: 'DI FARMA I',
+        direccion: 'AV. 24 DE SEPTIEMBRE 1372, CÓRDOBA',
+        tel: '',
+        lat: '-31.41381',
+        lng: '-64.165084'
+      },
+      {
+        nombre: 'DEQUINO II',
+        direccion: 'PASEO LIBERTAD POETA LUGONES LOC. 240, CÓRDOBA',
+        tel: '3516513768',
+        lat: '-31.362878',
+        lng: '-64.217753'
+      },
+      {
+        nombre: 'DI FARMA I',
+        direccion: 'RIVERA INDARTE 1398, ESQ. J. DEL CAMPILLO, CÓRDOBA',
+        tel: '',
+        lat: '-31.401817',
+        lng: '-64.17909'
+      },
+      {
+        nombre: 'MI FARMACIA',
+        direccion: 'RIO DE JANEIRO 1043, VILLA ALLENDE',
+        tel: '3543-436301',
+        lat: '-31.298065',
+        lng: '-64.28823'
+      },
+      {
+        nombre: 'MI FARMACIA',
+        direccion: 'SARGENTO CABRAL 1335, VILLA ALLENDE',
+        tel: '3543-436300',
+        lat: '-31.297897',
+        lng: '-64.294488'
+      },
+      {
+        nombre: 'MI FARMACIA',
+        direccion: 'SARGENTO CABRAL 1319, VILLA ALLENDE',
+        tel: '3543-436300',
+        lat: '-31.297897',
+        lng: '-64.294488'
+      },
+      {
+        nombre: 'HOS. ITALIANO',
+        direccion: 'MARINA CARRERAS 2900, CÓRDOBA',
+        tel: '0351-4688706',
+        lat: '-31.420083',
+        lng: '-64.188776'
+      },
+      {
+        nombre: 'FCIA HURTADO',
+        direccion: 'AV. MARÍN 1224, CÓRDOBA',
+        tel: '',
+        lat: '-31.325654',
+        lng: '-64.265331'
+      },
+      {
+        nombre: 'FCIA FERRER',
+        direccion: 'BRASIL 425, CÓRDOBA',
+        tel: '',
+        lat: '-31.427178',
+        lng: '-64.195571'
+      },
+      {
+        nombre: 'HOSPITAL ITALIANO',
+        direccion: 'ALFONSO VIII 678, CÓRDOBA',
+        tel: '',
+        lat: '-26.826499',
+        lng: '-65.206343'
+      },
+      {
+        nombre: 'HOSPITAL ITALIANO',
+        direccion: 'RIVADAVIA 1270, CÓRDOBA',
+        tel: '',
+        lat: '-29.712995',
+        lng: '-57.090242'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'CAVIA 2600, CÓRDOBA',
+        tel: '',
+        lat: '-31.369291',
+        lng: '-64.210329'
+      },
+      {
+        nombre: 'VIG FARMA',
+        direccion: 'COLON 1771, CÓRDOBA',
+        tel: '',
+        lat: '-31.406795',
+        lng: '-64.206855'
+      },
+      {
+        nombre: 'ALTAMIRANO',
+        telefono: '',
+        direccion: '25 DE MAYO ESQ. SAN JUAN, VILLA DEL ROSARIO',
+        lat: '-31.557071',
+        lng: '-63.53744'
+      },
+    ]
+    const map = L.map('map').setView([-32.8947802, -68.842475], 6); // Centrado en Mendoza, AR
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+    }).addTo(map);
+
+    const markers = [];
+
+    tiendas.forEach(tienda => {
+      const marker = L.marker([tienda.lat, tienda.lng])
+        .addTo(map)
+        .bindPopup(`<b>${tienda.nombre}</b><br>${tienda.direccion}<br>${tienda.tel}`);
+      markers.push(marker);
+
+      const tiendaDiv = document.createElement('div');
+      tiendaDiv.className = 'tienda';
+      tiendaDiv.textContent = tienda.nombre;
+      tiendaDiv.onclick = () => {
+        map.setView([tienda.lat, tienda.lng], 15);
+        marker.openPopup();
+      };
+      document.getElementById('tiendasCercanas').appendChild(tiendaDiv);
+    });
+
+    function verMiUbicacion() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          map.setView([lat, lng], 15);
+
+          const miUbicacionMarker = L.marker([lat, lng], { color: 'red' })
+            .addTo(map)
+            .bindPopup('<b>Mi Ubicación</b>')
+            .openPopup();
+
+          mostrarTiendasCercanas(lat, lng);
+        });
+      } else {
+        alert('Geolocalización no es soportada por este navegador.');
+      }
+    }
+
+    function verTodasLasTiendas() {
+      map.fitBounds(markers.map(marker => marker.getLatLng()));
+    }
+
+    function mostrarTiendasCercanas(lat, lng) {
+      const cercanas = tiendas
+        .map(tienda => {
+          const distancia = calcularDistancia(lat, lng, tienda.lat, tienda.lng);
+          return { ...tienda, distancia };
+        })
+        .sort((a, b) => a.distancia - b.distancia)
+        .slice(0, 3);
+
+      document.getElementById('tiendasCercanas').innerHTML = '';
+
+      cercanas.forEach(tienda => {
+        const tiendaDiv = document.createElement('div');
+        tiendaDiv.className = 'tienda';
+        tiendaDiv.textContent = `${tienda.nombre} (${tienda.distancia.toFixed(2)} km)`;
+        tiendaDiv.onclick = () => {
+          map.setView([tienda.lat, tienda.lng], 15);
+          markers[tiendas.indexOf(tienda)].openPopup();
+        };
+        document.getElementById('tiendasCercanas').appendChild(tiendaDiv);
+      });
+    }
+
+    function calcularDistancia(lat1, lng1, lat2, lng2) {
+      const R = 6371; // Radio de la Tierra en km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+  </script>
+</body>
+
+</html>
