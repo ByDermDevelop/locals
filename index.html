@@ -10,6 +10,9 @@
     body {
       font-family: Arial, sans-serif;
       display: flex;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
     }
 
     .sidebar {
@@ -27,8 +30,8 @@
     }
 
     #map {
-      width: 70%;
-      height: 100vh;
+      width: 65%;
+      height: 70vh;
     }
 
     .tienda {
@@ -46,7 +49,7 @@
     #tiendasCercanas {
       margin-top: 20px;
       overflow-y: scroll;
-      max-height: 450px;
+      max-height: 300px;
     }
   </style>
 </head>
@@ -854,6 +857,7 @@
         lng: '-63.53744'
       },
     ]
+
     const map = L.map('map').setView([-32.8947802, -68.842475], 6); // Centrado en Mendoza, AR
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
