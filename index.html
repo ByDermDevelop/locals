@@ -939,6 +939,8 @@
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     }
+
+    window.addEventListener("message", function (event) { var data = event.data; console.log("Latitud: " + data.lat); console.log("Longitud: " + data.lon); }, false);
   </script>
 </body>
 
