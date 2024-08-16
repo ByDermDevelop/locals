@@ -64,6 +64,25 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    function getQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        lat: params.get('lat'),
+        lon: params.get('lon')
+      };
+    }
+
+    const { lat, lon } = getQueryParams();
+
+    const map = L.map('map').setView(
+      lat && lon ? [lat, lon] : [-32.8947802, -68.842475],
+      lat && lon ? 15 : 6
+    ); // Si lat y lon están presentes, centramos en esas coordenadas
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+    }).addTo(map);
+
     const tiendas = [
       {
         nombre: 'FCIA EL BOTICARIO',
@@ -856,13 +875,7 @@
         lat: '-31.557071',
         lng: '-63.53744'
       },
-    ]
-
-    const map = L.map('map').setView([-32.8947802, -68.842475], 6); // Centrado en Mendoza, AR
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-    }).addTo(map);
+    ];
 
     const markers = [];
 
@@ -940,7 +953,6 @@
       return R * c;
     }
 
-    window.addEventListener("message", function (event) { var data = event.data; console.log("Latitud: " + data.lat); console.log("Longitud: " + data.lon); }, false);
   </script>
 </body>
 
