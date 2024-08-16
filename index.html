@@ -1,97 +1,205 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa de Tiendas</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    .sidebar {
-      width: 30%;
-      padding: 20px;
-      background-color: #f0f0f0;
-    }
-
-    .sidebar button {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      cursor: pointer;
-    }
-
-    #map {
-      width: 65%;
-      height: 70vh;
-    }
-
-    .tienda {
-      margin-bottom: 10px;
-      padding: 10px;
-      background-color: #fff;
-      cursor: pointer;
-      border: 1px solid #ccc;
-    }
-
-    .tienda:hover {
-      background-color: #e0e0e0;
-    }
-
-    #tiendasCercanas {
-      margin-top: 20px;
-      overflow-y: scroll;
-      max-height: 300px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Tiendas</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+        }
+        .sidebar {
+            width: 300px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            overflow-y: auto;
+        }
+        #map {
+            flex-grow: 1;
+            height: 100%;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        #searchInput {
+            flex-grow: 1;
+            border: none;
+            padding: 5px;
+            font-size: 16px;
+        }
+        .search-icon {
+            padding: 5px;
+            cursor: pointer;
+        }
+        #suggestions {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            background-color: white;
+            border-radius: 0 0 5px 5px;
+        }
+        #suggestions li {
+            padding: 10px;
+            cursor: pointer;
+        }
+        #suggestions li:hover {
+            background-color: #f0f0f0;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .tienda {
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="sidebar">
-    <button onclick="verMiUbicacion()">Ver Mi Ubicación</button>
-    <button onclick="verTodasLasTiendas()">Ver Todas las Tiendas</button>
-    <div id="tiendasCercanas"></div>
-  </div>
-  <div id="map"></div>
+    <div class="container">
+        <div class="sidebar">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Buscar">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <ul id="suggestions"></ul>
+            </div>
+            <button onclick="verTodasLasTiendas()">Ver Todas las Tiendas</button>
+            <div id="tiendasCercanas"></div>
+        </div>
+        <div id="map"></div>
+    </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    function getQueryParams() {
-      const params = new URLSearchParams(window.location.search);
-      return {
-        lat: params.get('lat'),
-        lon: params.get('lon')
-      };
-    }
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsList = document.getElementById('suggestions');
+        let debounceTimer;
+        let map;
+        let markers = [];
+        let selectedLocationMarker;
 
-    const { lat, lon } = getQueryParams();
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const query = this.value;
+                if (query.length > 2) {
+                    fetchSuggestions(query);
+                } else {
+                    suggestionsList.innerHTML = '';
+                }
+            }, 300);
+        });
 
-    const map = L.map('map').setView(
-      lat && lon ? [lat, lon] : [-32.8947802, -68.842475],
-      lat && lon ? 15 : 6
-    ); // Si lat y lon están presentes, centramos en esas coordenadas
+        function fetchSuggestions(query) {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=ar`;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-    }).addTo(map);
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionsList.innerHTML = '';
+                    data.forEach(location => {
+                        const li = document.createElement('li');
+                        const mainText = location.display_name.split(',')[0];
+                        const secondaryText = location.display_name.split(',').slice(1).join(',').trim();
+                        li.innerHTML = `
+                            <span class="location-icon">📍</span>
+                            <div class="suggestion-text">
+                                <div class="main-text">${mainText}</div>
+                                <div class="secondary-text">${secondaryText}</div>
+                            </div>
+                        `;
+                        li.addEventListener('click', () => selectLocation(location));
+                        suggestionsList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    suggestionsList.innerHTML = '';
+                });
+        }
 
-    const tiendas = [
-      {
-        nombre: 'FCIA EL BOTICARIO',
-        direccion: 'CLAUDIO RODRIGO 154, EL DORADO',
-        tel: '03751 42-6811',
-        lat: '-26.40702',
-        lng: '-54.605254'
-      },
-      {
+        function selectLocation(location) {
+            searchInput.value = location.display_name;
+            suggestionsList.innerHTML = '';
+            console.log('Ubicación seleccionada:', location);
+
+            const lat = parseFloat(location.lat);
+            const lng = parseFloat(location.lon);
+
+            map.setView([lat, lng], 15);
+
+            if (selectedLocationMarker) {
+                map.removeLayer(selectedLocationMarker);
+            }
+
+            selectedLocationMarker = L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup(location.display_name)
+                .openPopup();
+
+            mostrarTiendasCercanas(lat, lng);
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target !== searchInput && !suggestionsList.contains(e.target)) {
+                suggestionsList.innerHTML = '';
+            }
+        });
+
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                lat: params.get('lat'),
+                lon: params.get('lon')
+            };
+        }
+
+        const { lat, lon } = getQueryParams();
+
+        map = L.map('map').setView(
+            lat && lon ? [lat, lon] : [-32.8947802, -68.842475],
+            lat && lon ? 15 : 6
+        );
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+        }).addTo(map);
+
+        const tiendas = [
+            {
+                nombre: 'FCIA EL BOTICARIO',
+                direccion: 'CLAUDIO RODRIGO 154, EL DORADO',
+                tel: '03751 42-6811',
+                lat: '-26.40702',
+                lng: '-54.605254'
+            },
+            {
         nombre: 'FCIA FARMAMUNDO',
         direccion: 'CONSTITUCION 347, SAN VICENTE',
         tel: '3755461379',
@@ -875,85 +983,84 @@
         lat: '-31.557071',
         lng: '-63.53744'
       },
-    ];
+        ];
 
-    const markers = [];
+        function mostrarTiendasCercanas(lat, lng) {
+            const cercanas = tiendas
+                .map(tienda => {
+                    const distancia = calcularDistancia(lat, lng, tienda.lat, tienda.lng);
+                    return { ...tienda, distancia };
+                })
+                .sort((a, b) => a.distancia - b.distancia)
+                .slice(0, 3);
 
-    tiendas.forEach(tienda => {
-      const marker = L.marker([tienda.lat, tienda.lng])
-        .addTo(map)
-        .bindPopup(`<b>${tienda.nombre}</b><br>${tienda.direccion}<br>${tienda.tel}`);
-      markers.push(marker);
+            document.getElementById('tiendasCercanas').innerHTML = '';
 
-      const tiendaDiv = document.createElement('div');
-      tiendaDiv.className = 'tienda';
-      tiendaDiv.textContent = tienda.nombre;
-      tiendaDiv.onclick = () => {
-        map.setView([tienda.lat, tienda.lng], 15);
-        marker.openPopup();
-      };
-      document.getElementById('tiendasCercanas').appendChild(tiendaDiv);
-    });
+            markers.forEach(marker => map.removeLayer(marker));
+            markers.length = 0;
 
-    function verMiUbicacion() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          map.setView([lat, lng], 15);
+            cercanas.forEach(tienda => {
+                const tiendaDiv = document.createElement('div');
+                tiendaDiv.className = 'tienda';
+                tiendaDiv.textContent = `${tienda.nombre} (${tienda.distancia.toFixed(2)} km)`;
+                tiendaDiv.onclick = () => {
+                    map.setView([tienda.lat, tienda.lng], 15);
+                    markers.find(m => m.getLatLng().lat === parseFloat(tienda.lat) && m.getLatLng().lng === parseFloat(tienda.lng)).openPopup();
+                };
+                document.getElementById('tiendasCercanas').appendChild(tiendaDiv);
 
-          const miUbicacionMarker = L.marker([lat, lng], { color: 'red' })
-            .addTo(map)
-            .bindPopup('<b>Mi Ubicación</b>')
-            .openPopup();
+                const marker = L.marker([tienda.lat, tienda.lng])
+                    .addTo(map)
+                    .bindPopup(`<b>${tienda.nombre}</b><br>${tienda.direccion}<br>${tienda.tel}`);
+                markers.push(marker);
+            });
 
-          mostrarTiendasCercanas(lat, lng);
-        });
-      } else {
-        alert('Geolocalización no es soportada por este navegador.');
-      }
-    }
+            const bounds = L.latLngBounds([...cercanas.map(t => [t.lat, t.lng]), [lat, lng]]);
+            map.fitBounds(bounds);
+        }
 
-    function verTodasLasTiendas() {
-      map.fitBounds(markers.map(marker => marker.getLatLng()));
-    }
+        function verTodasLasTiendas() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers.length = 0;
 
-    function mostrarTiendasCercanas(lat, lng) {
-      const cercanas = tiendas
-        .map(tienda => {
-          const distancia = calcularDistancia(lat, lng, tienda.lat, tienda.lng);
-          return { ...tienda, distancia };
-        })
-        .sort((a, b) => a.distancia - b.distancia)
-        .slice(0, 3);
+            const bounds = L.latLngBounds(tiendas.map(t => [t.lat, t.lng]));
+            
+            tiendas.forEach(tienda => {
+                const marker = L.marker([tienda.lat, tienda.lng])
+                    .addTo(map)
+                    .bindPopup(`<b>${tienda.nombre}</b><br>${tienda.direccion}<br>${tienda.tel}`);
+                markers.push(marker);
+            });
 
-      document.getElementById('tiendasCercanas').innerHTML = '';
+            map.fitBounds(bounds);
 
-      cercanas.forEach(tienda => {
-        const tiendaDiv = document.createElement('div');
-        tiendaDiv.className = 'tienda';
-        tiendaDiv.textContent = `${tienda.nombre} (${tienda.distancia.toFixed(2)} km)`;
-        tiendaDiv.onclick = () => {
-          map.setView([tienda.lat, tienda.lng], 15);
-          markers[tiendas.indexOf(tienda)].openPopup();
-        };
-        document.getElementById('tiendasCercanas').appendChild(tiendaDiv);
-      });
-    }
+            document.getElementById('tiendasCercanas').innerHTML = '';
+            tiendas.forEach(tienda => {
+                const tiendaDiv = document.createElement('div');
+                tiendaDiv.className = 'tienda';
+                tiendaDiv.textContent = tienda.nombre;
+                tiendaDiv.onclick = () => {
+                    map.setView([tienda.lat, tienda.lng], 15);
+                    markers.find(m => m.getLatLng().lat === parseFloat(tienda.lat) && m.getLatLng().lng === parseFloat(tienda.lng)).openPopup();
+                };
+                document.getElementById('tiendasCercanas').appendChild(tiendaDiv);
+            });
+        }
 
-    function calcularDistancia(lat1, lng1, lat2, lng2) {
-      const R = 6371; // Radio de la Tierra en km
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLng = (lng2 - lng1) * Math.PI / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
+        function calcularDistancia(lat1, lng1, lat2, lng2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
 
-  </script>
+        // Inicialización
+        verTodasLasTiendas();
+    </script>
 </body>
-
 </html>
