@@ -20,8 +20,6 @@
             flex-direction: column;
         }
         .sidebar {
-            width: 300px;
-            padding: 20px;
             background-color: #f0f0f0;
         }
         #map {
@@ -81,29 +79,20 @@
         }
 
         #tiendasCercanas {
-          max-height: 300px;
+          max-height: 200px;
           overflow-y: scroll;
         }
         
-        /* Responsive Styles */
-        @media (min-width: 768px) {
+
             .container {
                 flex-direction: row;
             }
-            .sidebar {
-                width: 300px;
-                padding: 20px;
-                background-color: #f0f0f0;
-            }
-        }
-
-        @media (max-width: 767px) {
             .container {
                 flex-direction: column;
             }
             .sidebar {
                 width: 100%;
-                padding: 10px;
+                background-color: #f0f0f0;
             }
             .search-container {
                 width: 100%;
@@ -118,7 +107,7 @@
             .sidebar {
                 order: 1;
             }
-        }
+        
     </style>
 </head>
 <body>
