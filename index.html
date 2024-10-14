@@ -1,230 +1,254 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Mapa de Tiendas</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <style>
-            body, html {
-                height: 100%;
-                margin: 0;
-                padding: 0;
-                font-family: Arial, sans-serif;
-                box-sizing: border-box;
-            }
-            .container {
-                display: flex;
-                flex-direction: column;
-                height: 100%;
-            }
-            .sidebar {
-                width: 100%;
-                background-color: white;
-                order: 2;
-            }
-            #map {
-                flex-grow: 1;
-                height: 60vh;
-                order: 1;
-            }
-            .search-container {
-                margin-bottom: 10px;
-            }
-            .search-box {
-                display: flex;
-                align-items: center;
-                background-color: white;
-                border-radius: 5px;
-                padding: 5px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            #searchInput {
-                flex-grow: 1;
-                border: none;
-                padding: 8px;
-                font-size: 16px;
-            }
-            .search-icon {
-                padding: 8px;
-                cursor: pointer;
-                background-color: #E27825;
-                color: white;
-                border-radius: 0 5px 5px 0;
-            }
-            #suggestions {
-                list-style-type: none;
-                padding: 0;
-                margin: 0;
-                background-color: white;
-                border-radius: 0 0 5px 5px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            #suggestions li {
-                padding: 10px;
-                cursor: pointer;
-            }
-            #suggestions li:hover {
-                background-color: #f0f0f0;
-            }
-            button {
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background-color: #E27825;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-            }
-            .tienda {
-                padding: 10px;
-                margin-bottom: 5px;
-                background-color: white;
-                border-radius: 5px;
-                cursor: pointer;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            }
-            #tiendasCercanas {
-                max-height: 30vh;
-                overflow-y: auto;
-            }
-            .cluster-icon {
-                background-color: #ff6600;
-                border-radius: 50%;
-                text-align: center;
-                color: white;
-                font-weight: bold;
-                font-size: 14px;
-                width: 30px;
-                height: 30px;
-                line-height: 30px;
-            }
-            .location-icon {
-                margin-right: 10px;
-            }
-            .suggestion-text {
-                display: inline-block;
-            }
-            .main-text {
-                font-weight: bold;
-            }
-            .secondary-text {
-                font-size: 0.9em;
-                color: #666;
-            }
-            
-            @media (min-width: 768px) {
-                .container {
-                    flex-direction: row;
-                }
-                .sidebar {
-                    width: 40%;
-                    order: 1;
-                    background: #ffffff;
-                }
-                #map {
-                    order: 2;
-                    height: 100%;
-                }
-                #tiendasCercanas {
-                    max-height: calc(100vh - 200px);
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div id="map"></div>
-            <div class="sidebar">
-                <div class="search-container">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Ingresa código postal o dirección...">
-                        <span class="search-icon">🔍</span>
-                    </div>
-                    <ul id="suggestions"></ul>
-                </div>
-                <button onclick="verTodasLasTiendas()">Ver Todas las Tiendas</button>
-                <div id="tiendasCercanas"></div>
-            </div>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa de Tiendas</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      box-sizing: border-box;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .sidebar {
+      width: 100%;
+      background-color: white;
+      order: 2;
+    }
+
+    #map {
+      flex-grow: 1;
+      height: 60vh;
+      order: 1;
+    }
+
+    .search-container {
+      margin-bottom: 10px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background-color: white;
+      border-radius: 5px;
+      padding: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #searchInput {
+      flex-grow: 1;
+      border: none;
+      padding: 8px;
+      font-size: 16px;
+    }
+
+    .search-icon {
+      padding: 8px;
+      cursor: pointer;
+      background-color: #E27825;
+      color: white;
+      border-radius: 0 5px 5px 0;
+    }
+
+    #suggestions {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      background-color: white;
+      border-radius: 0 0 5px 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #suggestions li {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    #suggestions li:hover {
+      background-color: #f0f0f0;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #E27825;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .tienda {
+      padding: 10px;
+      margin-bottom: 5px;
+      background-color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    #tiendasCercanas {
+      max-height: 30vh;
+      overflow-y: auto;
+    }
+
+    .cluster-icon {
+      background-color: #ff6600;
+      border-radius: 50%;
+      text-align: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+    }
+
+    .location-icon {
+      margin-right: 10px;
+    }
+
+    .suggestion-text {
+      display: inline-block;
+    }
+
+    .main-text {
+      font-weight: bold;
+    }
+
+    .secondary-text {
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+
+      .sidebar {
+        width: 40%;
+        order: 1;
+        background: #ffffff;
+      }
+
+      #map {
+        order: 2;
+        height: 100%;
+      }
+
+      #tiendasCercanas {
+        max-height: calc(100vh - 200px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div id="map"></div>
+    <div class="sidebar">
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Ingresa código postal o dirección...">
+          <span class="search-icon">🔍</span>
         </div>
-    
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script>
-         const tiendas = [
-    {
-      nombre: "Farmacia Dardati",
-      direccion: "Lavalle 64, Rafaela, AF",
-      tel: "3492304360",
-      lat: -31.2522888,
-      lng: -61.4903983
-    },
-    {
-      nombre: "FARMACIAS MORI LIBERTAD",
-      direccion: "Libertad 1039, M5521 Mendoza, AF",
-      tel: "",
-      lat: -32.8967698,
-      lng: -68.7863207
-    },
-    {
-      nombre: "FARMACIAS MORI SAN JOSE",
-      direccion: "Juan B. Alberdi 362, M5519 San José, Mendoza, AF",
-      tel: "",
-      lat: -32.8938257,
-      lng: -68.8287656
-    },
-    {
-      nombre: "FARMACIAS MORI DORREGO",
-      direccion: "Lamadrid 1148, M5519 Dorrego, Mendoza, AF",
-      tel: "",
-      lat: -32.9039781,
-      lng: -68.8248641
-    },
-    {
-      nombre: "FARMACIAS MORI",
-      direccion: "Arístides Villanueva 331, M5500 Mendoza, AF",
-      tel: "",
-      lat: -32.892052,
-      lng: -68.855323
-    },
-    {
-      nombre: "FARMACIAS MORI",
-      direccion: "Av. España 980, M5500 DFJ, Mendoza, AR",
-      tel: "",
-      lat: -32.891523,
-      lng: -68.8425791
-    },
-    {
-      nombre: "FARMACIAS MORI",
-      direccion: "Av. Colón 324, M5500 Mendoza, AR",
-      tel: "",
-      lat: -32.8946497,
-      lng: -68.8449311
-    },
-    {
-      nombre: "FARMACIAS DEL PLATA I",
-      direccion: "AV SAN MARTIN 3598, CUIDAD MENDOZA, AR",
-      tel: "",
-      lat: -32.9507124,
-      lng: -68.8548212
-    },
-    {
-      nombre: "FARMACIAS DEL PLATA LA JIRAFA",
-      direccion: "BALCARCE 22, LUJAN DE CUYO MENDOZA, AR",
-      tel: "",
-      lat: -33.0394885,
-      lng: -68.8764921
-    },
-    {
-      nombre: "FARMACIAS SANTA ANA III",
-      direccion: "SAN MARTIN 400, LUJAN DE CUYO MENDOZA, AR",
-      tel: "",
-      lat: -33.0009908,
-      lng: -68.8671125
-    },
-    {
+        <ul id="suggestions"></ul>
+      </div>
+      <button onclick="verTodasLasTiendas()">Ver Todas las Tiendas</button>
+      <div id="tiendasCercanas"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script>
+    const tiendas = [
+      {
+        nombre: "Farmacia Dardati",
+        direccion: "Lavalle 64, Rafaela, AF",
+        tel: "3492304360",
+        lat: -31.2522888,
+        lng: -61.4903983
+      },
+      {
+        nombre: "FARMACIAS MORI LIBERTAD",
+        direccion: "Libertad 1039, M5521 Mendoza, AF",
+        tel: "",
+        lat: -32.8967698,
+        lng: -68.7863207
+      },
+      {
+        nombre: "FARMACIAS MORI SAN JOSE",
+        direccion: "Juan B. Alberdi 362, M5519 San José, Mendoza, AF",
+        tel: "",
+        lat: -32.8938257,
+        lng: -68.8287656
+      },
+      {
+        nombre: "FARMACIAS MORI DORREGO",
+        direccion: "Lamadrid 1148, M5519 Dorrego, Mendoza, AF",
+        tel: "",
+        lat: -32.9039781,
+        lng: -68.8248641
+      },
+      {
+        nombre: "FARMACIAS MORI",
+        direccion: "Arístides Villanueva 331, M5500 Mendoza, AF",
+        tel: "",
+        lat: -32.892052,
+        lng: -68.855323
+      },
+      {
+        nombre: "FARMACIAS MORI",
+        direccion: "Av. España 980, M5500 DFJ, Mendoza, AR",
+        tel: "",
+        lat: -32.891523,
+        lng: -68.8425791
+      },
+      {
+        nombre: "FARMACIAS MORI",
+        direccion: "Av. Colón 324, M5500 Mendoza, AR",
+        tel: "",
+        lat: -32.8946497,
+        lng: -68.8449311
+      },
+      {
+        nombre: "FARMACIAS DEL PLATA I",
+        direccion: "AV SAN MARTIN 3598, CUIDAD MENDOZA, AR",
+        tel: "",
+        lat: -32.9507124,
+        lng: -68.8548212
+      },
+      {
+        nombre: "FARMACIAS DEL PLATA LA JIRAFA",
+        direccion: "BALCARCE 22, LUJAN DE CUYO MENDOZA, AR",
+        tel: "",
+        lat: -33.0394885,
+        lng: -68.8764921
+      },
+      {
+        nombre: "FARMACIAS SANTA ANA III",
+        direccion: "SAN MARTIN 400, LUJAN DE CUYO MENDOZA, AR",
+        tel: "",
+        lat: -33.0009908,
+        lng: -68.8671125
+      },
+      {
         nombre: "FARMACIAS SANTA ANA CENTRAL",
         direccion: "SAN MARTIN 951, LUJAN DE CUYO, MENDOZA, AR",
         tel: "",
@@ -4280,7 +4304,7 @@
       {
         nombre: "FARMA TOTAL",
         direccion: "Vicente Zapata 303",
-        tel:"",
+        tel: "",
         lat: -32.89595706505186,
         lng: -68.83640980455552
       },
@@ -4297,6 +4321,90 @@
         tel: "",
         lat: -24.183358548581758,
         lng: -65.31108134588793
+      },
+      {
+        nombre: "Farmacia del Barrio",
+        direccion: "Av. Constitución 7598, Mar del Plata",
+        tel: "",
+        lat: -37.95271635159774,
+        lng: -57.57957330389706
+      },
+      {
+        nombre: "Sucursal Constitución (Retiro en sucursal)",
+        direccion: "Av. Constitución 4793, B7600, Mar Del Plata",
+        tel: "",
+        lat: -37.96650347193133,
+        lng: -57.551307703896356
+      },
+      {
+        nombre: "Sucursal Luro (Retiro en sucursal)",
+        direccion: "Avenida Pedro Luro & David Ortega, Mar del Platavincia de Buenos Aires",
+        tel: "",
+        lat: -37.97683814389932,
+        lng: -57.58952074151878
+      },
+      {
+        nombre: "Sucursal San Martín (Retiro en sucursal)",
+        direccion: "San Martin 2455, Mar del Plata",
+        tel: "",
+        lat: -38.00014983518971,
+        lng: -57.5453886038945
+      },
+      {
+        nombre: "Sucursal Diagonal (Retiro en sucursal)",
+        direccion: "Rivadavia & Diagonal Pueyrredón, Mar del Plata",
+        tel: "",
+        lat: -37.99855873574041,
+        lng: -57.550976303894366
+      },
+      {
+        nombre: "Sucursal Alvarado (Retiro en sucursal)",
+        direccion: "Alvarado & Bartolomé Mitre, Mar del Plata",
+        tel: "",
+        lat: -38.00888143216743,
+        lng: -57.557319803893954
+      },
+      {
+        nombre: "Sucursal Güemes (Retiro en sucursal)",
+        direccion: "Guemes 1300, Mar del Plata",
+        tel: "",
+        lat: -38.01565687718664,
+        lng: -57.541672432729044
+      },
+      {
+        nombre: "Sucursal Juan B. Justo (Retiro en sucursal)",
+        direccion: "Avenida Juan B. Justo & Córdoba, B7608 Mar del Plata",
+        tel: "",
+        lat: -38.02294677550337,
+        lng: -57.565863161564145
+      },
+      {
+        nombre: "Sucursal Alem (Retiro en sucursal)",
+        direccion: "Leandro N. Alem 3777, Mar Del Plata",
+        tel: "",
+        lat: -38.0280384207121,
+        lng: -57.53644051738616
+      },
+      {
+        nombre: "Sucursal Mogotes (Retiro en sucursal)",
+        direccion: "Av. de los Trabajadores & Sicilia, Mar del Plata",
+        tel: "",
+        lat: -38.06927427190621,
+        lng: -57.54774143272606
+      },
+      {
+        nombre: "Farmacia Lopez Pierre srl",
+        direccion: "Alvear 927 san salvador de jujuy",
+        tel: "3534225423",
+        lat: -24.184166618300267,
+        lng: -65.30593517726541
+      },
+      {
+        nombre: "Farmacia Trapaga",
+        direccion: "Av. San Martín 1250",
+        tel: "2355420172",
+        lat: -34.49850144514161,
+        lng: -61.542166420428
       },
       {
         nombre: "FARMACIAS DEL PLATA 2",
@@ -4459,118 +4567,118 @@
         lat: -32.89248505579359,
         lng: -68.84011658921436
       }
-  ]
+    ]
 
-        // ... (mantener todo el código JavaScript existente) ...
+    // ... (mantener todo el código JavaScript existente) ...
 
-        // Modificar la función verTodasLasTiendas para usar MarkerClusterGroup
-        const searchInput = document.getElementById('searchInput');
-const suggestionsList = document.getElementById('suggestions');
-let debounceTimer;
-let map;
-let markers = [];
-let selectedLocationMarker;
+    // Modificar la función verTodasLasTiendas para usar MarkerClusterGroup
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsList = document.getElementById('suggestions');
+    let debounceTimer;
+    let map;
+    let markers = [];
+    let selectedLocationMarker;
 
-searchInput.addEventListener('input', function() {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
+    searchInput.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
         const query = this.value;
         if (query.length > 2) {
-            fetchSuggestions(query);
+          fetchSuggestions(query);
         } else {
-            suggestionsList.innerHTML = '';
+          suggestionsList.innerHTML = '';
         }
-    }, 300);
-});
+      }, 300);
+    });
 
-function fetchSuggestions(query) {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=ar`;
+    function fetchSuggestions(query) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=ar`;
 
-    fetch(url)
+      fetch(url)
         .then(response => response.json())
         .then(data => {
-            suggestionsList.innerHTML = '';
-            data.forEach(location => {
-                const li = document.createElement('li');
-                const mainText = location.display_name.split(',')[0];
-                const secondaryText = location.display_name.split(',').slice(1).join(',').trim();
-                li.innerHTML = `
+          suggestionsList.innerHTML = '';
+          data.forEach(location => {
+            const li = document.createElement('li');
+            const mainText = location.display_name.split(',')[0];
+            const secondaryText = location.display_name.split(',').slice(1).join(',').trim();
+            li.innerHTML = `
                     <span class="location-icon">📍</span>
                     <div class="suggestion-text">
                         <div class="main-text">${mainText}</div>
                         <div class="secondary-text">${secondaryText}</div>
                     </div>
                 `;
-                li.addEventListener('click', () => selectLocation(location));
-                suggestionsList.appendChild(li);
-            });
+            li.addEventListener('click', () => selectLocation(location));
+            suggestionsList.appendChild(li);
+          });
         })
         .catch(error => {
-            console.error('Error:', error);
-            suggestionsList.innerHTML = '';
+          console.error('Error:', error);
+          suggestionsList.innerHTML = '';
         });
-}
-
-function selectLocation(location) {
-    searchInput.value = location.display_name;
-    suggestionsList.innerHTML = '';
-    console.log('Ubicación seleccionada:', location);
-
-    const lat = parseFloat(location.lat);
-    const lng = parseFloat(location.lon);
-
-    map.setView([lat, lng], 15);
-
-    if (selectedLocationMarker) {
-        map.removeLayer(selectedLocationMarker);
     }
 
-    selectedLocationMarker = L.marker([lat, lng])
+    function selectLocation(location) {
+      searchInput.value = location.display_name;
+      suggestionsList.innerHTML = '';
+      console.log('Ubicación seleccionada:', location);
+
+      const lat = parseFloat(location.lat);
+      const lng = parseFloat(location.lon);
+
+      map.setView([lat, lng], 15);
+
+      if (selectedLocationMarker) {
+        map.removeLayer(selectedLocationMarker);
+      }
+
+      selectedLocationMarker = L.marker([lat, lng])
         .addTo(map)
         .bindPopup(location.display_name)
         .openPopup();
 
-    mostrarTiendasCercanas(lat, lng);
-}
-
-document.addEventListener('click', function(e) {
-    if (e.target !== searchInput && !suggestionsList.contains(e.target)) {
-        suggestionsList.innerHTML = '';
+      mostrarTiendasCercanas(lat, lng);
     }
-});
 
-function getQueryParams() {
-    const params = new URLSearchParams(window.location.search);
-    return {
+    document.addEventListener('click', function (e) {
+      if (e.target !== searchInput && !suggestionsList.contains(e.target)) {
+        suggestionsList.innerHTML = '';
+      }
+    });
+
+    function getQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
         lat: params.get('lat'),
         lon: params.get('lon')
-    };
-}
+      };
+    }
 
-const { lat, lon } = getQueryParams();
+    const { lat, lon } = getQueryParams();
 
-map = L.map('map').setView(
-    lat && lon ? [lat, lon] : [-32.8947802, -68.842475],
-    lat && lon ? 15 : 6
-);
+    map = L.map('map').setView(
+      lat && lon ? [lat, lon] : [-32.8947802, -68.842475],
+      lat && lon ? 15 : 6
+    );
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-}).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+    }).addTo(map);
 
-function mostrarTiendasCercanas(lat, lng) {
-    const cercanas = tiendas
+    function mostrarTiendasCercanas(lat, lng) {
+      const cercanas = tiendas
         .map(tienda => {
-            const distancia = calcularDistancia(lat, lng, tienda.lat, tienda.lng);
-            return { ...tienda, distancia };
+          const distancia = calcularDistancia(lat, lng, tienda.lat, tienda.lng);
+          return { ...tienda, distancia };
         })
         .sort((a, b) => a.distancia - b.distancia)
         .slice(0, 5); // Mostrar las 5 tiendas más cercanas
 
-    const tiendasCercanasDiv = document.getElementById('tiendasCercanas');
-    tiendasCercanasDiv.innerHTML = '<h3>Tiendas Cercanas:</h3>';
+      const tiendasCercanasDiv = document.getElementById('tiendasCercanas');
+      tiendasCercanasDiv.innerHTML = '<h3>Tiendas Cercanas:</h3>';
 
-    cercanas.forEach(tienda => {
+      cercanas.forEach(tienda => {
         const tiendaDiv = document.createElement('div');
         tiendaDiv.className = 'tienda';
         tiendaDiv.innerHTML = `
@@ -4579,98 +4687,99 @@ function mostrarTiendasCercanas(lat, lng) {
             Distancia: ${tienda.distancia.toFixed(2)} km
         `;
         tiendaDiv.onclick = () => {
-            map.setView([tienda.lat, tienda.lng], 15);
-            const marker = markers.find(m => 
-                m.getLatLng().lat === parseFloat(tienda.lat) && 
-                m.getLatLng().lng === parseFloat(tienda.lng)
-            );
-            if (marker) {
-                marker.openPopup();
-            }
+          map.setView([tienda.lat, tienda.lng], 15);
+          const marker = markers.find(m =>
+            m.getLatLng().lat === parseFloat(tienda.lat) &&
+            m.getLatLng().lng === parseFloat(tienda.lng)
+          );
+          if (marker) {
+            marker.openPopup();
+          }
         };
         tiendasCercanasDiv.appendChild(tiendaDiv);
-    });
+      });
 
-    // Actualizar los marcadores en el mapa
-    markers.forEach(marker => map.removeLayer(marker));
-    markers.length = 0;
+      // Actualizar los marcadores en el mapa
+      markers.forEach(marker => map.removeLayer(marker));
+      markers.length = 0;
 
-    const markerClusterGroup = L.markerClusterGroup({
-        iconCreateFunction: function(cluster) {
-            return L.divIcon({
-                html: cluster.getChildCount(),
-                className: 'cluster-icon',
-                iconSize: L.point(30, 30)
-            });
+      const markerClusterGroup = L.markerClusterGroup({
+        iconCreateFunction: function (cluster) {
+          return L.divIcon({
+            html: cluster.getChildCount(),
+            className: 'cluster-icon',
+            iconSize: L.point(30, 30)
+          });
         }
-    });
+      });
 
-    cercanas.forEach(tienda => {
+      cercanas.forEach(tienda => {
         const marker = L.marker([tienda.lat, tienda.lng])
-            .bindPopup(`<b>${tienda.nombre}</b><br>${tienda.direccion}<br>${tienda.tel}`);
+          .bindPopup(`<b>${tienda.nombre}</b><br>${tienda.direccion}<br>${tienda.tel}`);
         markerClusterGroup.addLayer(marker);
         markers.push(marker);
-    });
+      });
 
-    map.addLayer(markerClusterGroup);
+      map.addLayer(markerClusterGroup);
 
-    const bounds = L.latLngBounds([...cercanas.map(t => [t.lat, t.lng]), [lat, lng]]);
-    map.fitBounds(bounds);
-}
+      const bounds = L.latLngBounds([...cercanas.map(t => [t.lat, t.lng]), [lat, lng]]);
+      map.fitBounds(bounds);
+    }
 
-function verTodasLasTiendas() {
-    markers.forEach(marker => map.removeLayer(marker));
-    markers.length = 0;
+    function verTodasLasTiendas() {
+      markers.forEach(marker => map.removeLayer(marker));
+      markers.length = 0;
 
-    const bounds = L.latLngBounds(tiendas.map(t => [t.lat, t.lng]));
-    
-    const markerClusterGroup = L.markerClusterGroup({
-        iconCreateFunction: function(cluster) {
-            return L.divIcon({
-                html: cluster.getChildCount(),
-                className: 'cluster-icon',
-                iconSize: L.point(30, 30)
-            });
+      const bounds = L.latLngBounds(tiendas.map(t => [t.lat, t.lng]));
+
+      const markerClusterGroup = L.markerClusterGroup({
+        iconCreateFunction: function (cluster) {
+          return L.divIcon({
+            html: cluster.getChildCount(),
+            className: 'cluster-icon',
+            iconSize: L.point(30, 30)
+          });
         }
-    });
+      });
 
-    tiendas.forEach(tienda => {
+      tiendas.forEach(tienda => {
         const marker = L.marker([tienda.lat, tienda.lng])
-            .bindPopup(`<b>${tienda.nombre}</b><br>${tienda.direccion}<br>${tienda.tel}`);
+          .bindPopup(`<b>${tienda.nombre}</b><br>${tienda.direccion}<br>${tienda.tel}`);
         markerClusterGroup.addLayer(marker);
         markers.push(marker);
-    });
+      });
 
-    map.addLayer(markerClusterGroup);
-    map.fitBounds(bounds);
+      map.addLayer(markerClusterGroup);
+      map.fitBounds(bounds);
 
-    document.getElementById('tiendasCercanas').innerHTML = '';
-    tiendas.forEach(tienda => {
+      document.getElementById('tiendasCercanas').innerHTML = '';
+      tiendas.forEach(tienda => {
         const tiendaDiv = document.createElement('div');
         tiendaDiv.className = 'tienda';
         tiendaDiv.textContent = tienda.nombre;
         tiendaDiv.onclick = () => {
-            map.setView([tienda.lat, tienda.lng], 15);
-            markers.find(m => m.getLatLng().lat === parseFloat(tienda.lat) && m.getLatLng().lng === parseFloat(tienda.lng)).openPopup();
+          map.setView([tienda.lat, tienda.lng], 15);
+          markers.find(m => m.getLatLng().lat === parseFloat(tienda.lat) && m.getLatLng().lng === parseFloat(tienda.lng)).openPopup();
         };
         document.getElementById('tiendasCercanas').appendChild(tiendaDiv);
-    });
-}
+      });
+    }
 
-function calcularDistancia(lat1, lng1, lat2, lng2) {
-    const R = 6371; // Radio de la Tierra en kilómetros
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Distancia en kilómetros
-}
+    function calcularDistancia(lat1, lng1, lat2, lng2) {
+      const R = 6371; // Radio de la Tierra en kilómetros
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c; // Distancia en kilómetros
+    }
 
-// Inicialización
-verTodasLasTiendas();
-    </script>
+    // Inicialización
+    verTodasLasTiendas();
+  </script>
 </body>
+
 </html>
