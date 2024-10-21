@@ -181,7 +181,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
   <script>
-    const tiendas = [
+    let tiendas = [
       {
         nombre: "Farmacia Dardati",
         direccion: "Lavalle 64, Rafaela, AF",
@@ -4601,6 +4601,7 @@
       }
     ]
 
+    tiendas.sort((a, b) => a.nombre.localeCompare(b.nombre));
     function exportarTiendasAExcel() {
   // Crear un array de objetos con las tiendas
   const data = tiendas.map(tienda => ({
