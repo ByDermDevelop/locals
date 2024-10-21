@@ -159,6 +159,8 @@
 </head>
 
 <body>
+  <!-- <button onclick="exportarTiendasAExcel()">Exportar Tiendas a Excel</button> -->
+
   <div class="container">
     <div id="map"></div>
     <div class="sidebar">
@@ -176,6 +178,8 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
   <script>
     const tiendas = [
       {
@@ -4597,7 +4601,27 @@
       }
     ]
 
-    // ... (mantener todo el código JavaScript existente) ...
+    function exportarTiendasAExcel() {
+  // Crear un array de objetos con las tiendas
+  const data = tiendas.map(tienda => ({
+    Nombre: tienda.nombre,
+    Dirección: tienda.direccion,
+    Teléfono: tienda.tel
+  }));
+
+  // Crear una hoja de cálculo con el array de objetos
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  // Crear un nuevo libro de trabajo (workbook)
+  const wb = XLSX.utils.book_new();
+
+  // Agregar la hoja de cálculo al libro
+  XLSX.utils.book_append_sheet(wb, ws, "Tiendas");
+
+  // Generar el archivo Excel
+  XLSX.writeFile(wb, "tiendas.xlsx");
+}
+
 
     // Modificar la función verTodasLasTiendas para usar MarkerClusterGroup
     const searchInput = document.getElementById('searchInput');
