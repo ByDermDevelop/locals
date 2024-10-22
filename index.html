@@ -161,7 +161,6 @@
   </head>
 
   <body>
-    <button onclick="exportarTiendasAExcel()">Exportar Tiendas a Excel</button>
 
     <div class="container">
       <div id="map"></div>
@@ -6167,33 +6166,7 @@
       verTodasLasTiendas();
 
 
-      function exportarTiendasAExcel() {
-  // Crear un array de objetos con las tiendas, excluyendo lat y lng
 
-  // Crear un array de objetos sólo con las columnas deseadas
-  const data = tiendas.map(tienda => ({
-    Nombre: tienda.nombre,
-    Dirección: tienda.direccion,
-    Localidad: tienda.localidad,
-    Provincia: tienda.provincia,
-    Teléfono: tienda.tel,
-  }));
-
-  // Crear una hoja de cálculo con el array de objetos
-  const ws = XLSX.utils.json_to_sheet(data);
-
-  // Crear un nuevo libro de trabajo (workbook)
-  const wb = XLSX.utils.book_new();
-
-  // Agregar la hoja de cálculo al libro
-  XLSX.utils.book_append_sheet(wb, ws, "Tiendas");
-
-  // Generar el archivo Excel
-  XLSX.writeFile(wb, "tiendas.xlsx");
-}
-
-// Llamar la función cuando sea necesario
-exportarTiendasAExcel();
     </script>
   </body>
 </html>
