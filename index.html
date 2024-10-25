@@ -5655,6 +5655,15 @@
           lat: -24.18525987836683,
           lng: -65.32757157614301,
         },
+        {
+          nombre: "FARMACIA AVENIDA",
+          direccion: "Hipólito Yrigoyen 25",
+          localidad: "SAN RAFAEL",
+          provincia: "MENDOZA",
+          tel: "",
+          lat: -34.616146554645,
+          lng: -68.33057400438499,
+        }
       ];
 
       tiendas.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -5894,41 +5903,39 @@
       verTodasLasTiendas();
 
       function exportarTiendasAExcel() {
-  // Agrupar tiendas por provincia
-  const tiendasPorProvincia = tiendas.reduce((acc, tienda) => {
-    const { provincia } = tienda;
-    if (!acc[provincia]) {
-      acc[provincia] = [];
-    }
-    acc[provincia].push({
-      Nombre: tienda.nombre,
-      Dirección: tienda.direccion,
-      Localidad: tienda.localidad,
-      Provincia: tienda.provincia,
-      Teléfono: tienda.tel,
-    });
-    return acc;
-  }, {});
+        // Agrupar tiendas por provincia
+        const tiendasPorProvincia = tiendas.reduce((acc, tienda) => {
+          const { provincia } = tienda;
+          if (!acc[provincia]) {
+            acc[provincia] = [];
+          }
+          acc[provincia].push({
+            Nombre: tienda.nombre,
+            Dirección: tienda.direccion,
+            Localidad: tienda.localidad,
+            Provincia: tienda.provincia,
+            Teléfono: tienda.tel,
+          });
+          return acc;
+        }, {});
 
-  // Crear y descargar un archivo para cada provincia con un intervalo entre descargas
-  const provincias = Object.keys(tiendasPorProvincia);
-  provincias.forEach((provincia, index) => {
-    setTimeout(() => {
-      const data = tiendasPorProvincia[provincia];
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Tiendas");
+        // Crear y descargar un archivo para cada provincia con un intervalo entre descargas
+        const provincias = Object.keys(tiendasPorProvincia);
+        provincias.forEach((provincia, index) => {
+          setTimeout(() => {
+            const data = tiendasPorProvincia[provincia];
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Tiendas");
 
-      // Asignar nombre al archivo usando la provincia
-      const fileName = `tiendas_${provincia}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-    }, index * 1000); // Intervalo de 1 segundo entre cada descarga
-  });
-}
+            // Asignar nombre al archivo usando la provincia
+            const fileName = `tiendas_${provincia}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+          }, index * 1000); // Intervalo de 1 segundo entre cada descarga
+        });
+      }
 
-/* exportarTiendasAExcel(); */
-
-
+      /* exportarTiendasAExcel(); */
     </script>
   </body>
 </html>
