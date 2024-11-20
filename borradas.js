@@ -275,13 +275,4 @@ const borradas = [
     lat: -32.8273612,
     lng: -68.7708862,
   },
-  {
-    nombre: "FARMACIA DEL CENTRO MEGASTORE",
-    direccion: "SAN MARTIN 100",
-    localidad: "MENDOZA",
-    provincia: "MENDOZA",
-    tel: "",
-    lat: -33.0806497,
-    lng: -68.47057,
-  },
 ]
